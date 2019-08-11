@@ -104,36 +104,18 @@ void _cpu::decodeOpcode()
 		break;
 
 	case 0x3000: /* 3XNN | Skip the next instruction if Vx equals NN */
-		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
-		{
-			pc += 4;
-		}
-		else
-		{
-			pc += 2;
-		}
+		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))	pc += 4;
+		else pc += 2;	
 		break;
 
 	case 0x4000: /* 4XNN | Skips the next instruction if VX doesnt equal NN */
-		if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
-		{
-			pc += 4;
-		}
-		else
-		{
-			pc += 2;
-		}
+		if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))	pc += 4;
+		else pc += 2;
 		break;
 
 	case 0x5000: /* 5XY0 | Skips the next instruction if VX equals VY. */
-		if (V[(opcode & 0x0F00) >> 8] == V[opcode & 0x00F0] >> 4)
-		{
-			pc += 4;
-		}
-		else
-		{
-			pc += 2;
-		}
+		if (V[(opcode & 0x0F00) >> 8] == V[opcode & 0x00F0] >> 4) pc += 4;
+		else pc += 2;
 		break;
 
 	case 0x6000: /* 6XNN | Sets VX to NN */
@@ -142,7 +124,38 @@ void _cpu::decodeOpcode()
 		break;
 
 	case 0x7000: /* 7XNN | Adds NN to VX (Carry flag is not changed) */
-		/*TODO continuar con las instrucciones*/
+		V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
+		pc += 2;
+		break;
+
+	case 0x8000:
+		switch (opcode & 0x000F)
+		{
+		case 0x0000: /* Sets Vx to the value of Vy */
+			break;
+		case 0x0001: /* Sets Vx to Vx or Vy (Bitwise or) */
+			break;
+		case 0x0002: /* Sets Vx to Vx and Vy (Bitwise and) */
+			break;
+		case 0x0003: /* Sets Vx to Vx xor Vy */
+			break;
+		case 0x0004: /* Adds Vy to Vx. VG is set to 1 when there's a carry, and to 0 when there isn't */
+			break;
+		case 0x0005: /* Vy is subtracted from Vx. Vf is set to 0 when there's a borrow, and 1 when there isnt'n */
+			break;
+		case 0x0006: /* Stores the least significant bit of Vx in Vf and then shifts Vx to the right by 1 */
+			break;
+		case 0x0007: /* Sets vx to Vy minus Vx. Vf is set to 0 when there's a borrow, and 1 when isn't */
+			break;
+		case 0x000E: /* Stores the most significant bit of Vx in Vf and then shifts Vx to left by 1 */
+			break;
+		}
+		break;
+	
+	case 0x9000: /* Skips the next instruction if Vx doesn't equal Vy */
+		if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
+			pc += 4;
+		else pc += 2;
 		break;
 	}
 }
