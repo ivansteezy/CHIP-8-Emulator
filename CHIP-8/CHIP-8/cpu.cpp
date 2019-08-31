@@ -131,31 +131,79 @@ void _cpu::decodeOpcode()
 	case 0x8000:
 		switch (opcode & 0x000F)
 		{
-		case 0x0000: /* Sets Vx to the value of Vy */
+		case 0x0000: /*LD Vx, Vy | Sets Vx to the value of Vy */
 			break;
-		case 0x0001: /* Sets Vx to Vx or Vy (Bitwise or) */
+		case 0x0001: /*OR Vx, Vy | Sets Vx to Vx or Vy (Bitwise or) */
 			break;
-		case 0x0002: /* Sets Vx to Vx and Vy (Bitwise and) */
+		case 0x0002: /*AND Vx, Vy | Sets Vx to Vx and Vy (Bitwise and) */
 			break;
-		case 0x0003: /* Sets Vx to Vx xor Vy */
+		case 0x0003: /*XOR Vx, Vy | Sets Vx to Vx xor Vy */
 			break;
-		case 0x0004: /* Adds Vy to Vx. VG is set to 1 when there's a carry, and to 0 when there isn't */
+		case 0x0004: /*ADD Vx, Vy | Adds Vy to Vx. VG is set to 1 when there's a carry, and to 0 when there isn't */
 			break;
-		case 0x0005: /* Vy is subtracted from Vx. Vf is set to 0 when there's a borrow, and 1 when there isnt'n */
+		case 0x0005: /*SUB Vx, Vy | Vy is subtracted from Vx. Vf is set to 0 when there's a borrow, and 1 when there isnt'n */
 			break;
-		case 0x0006: /* Stores the least significant bit of Vx in Vf and then shifts Vx to the right by 1 */
+		case 0x0006: /*SHR Vx {, Vy} | Stores the least significant bit of Vx in Vf and then shifts Vx to the right by 1 */
 			break;
-		case 0x0007: /* Sets vx to Vy minus Vx. Vf is set to 0 when there's a borrow, and 1 when isn't */
+		case 0x0007: /*SUBN Vx, Vy | Sets vx to Vy minus Vx. Vf is set to 0 when there's a borrow, and 1 when isn't */
 			break;
-		case 0x000E: /* Stores the most significant bit of Vx in Vf and then shifts Vx to left by 1 */
+		case 0x000E: /*SHL Vx {, Vy} | Stores the most significant bit of Vx in Vf and then shifts Vx to left by 1 */
+			break;
+		}
+	
+	case 0x9000: /*SNE Vx, Vy | Skips the next instruction if Vx doesn't equal Vy */
+		/*if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
+			pc += 4;
+		else pc += 2;*/
+		V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4] ? pc += 4 : pc += 2;
+		break;
+
+	case 0xC000: /* RND Vx, Byte | Set Vx = random byte AND kk */
+		break;
+
+	case 0xD000: /* DRW Vx, Vy, nibble | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
+		break;
+
+	case 0xE000:
+		switch (opcode && 0x000F)
+		{
+		case 0x000E:	/* SKP Vx | Skip next instruction if key with the value of Vx is pressed */
+			break;
+		case 0x0001:	/* SKNP Vx | Skip next instruction if key with the value of Vx is not */
 			break;
 		}
 		break;
-	
-	case 0x9000: /* Skips the next instruction if Vx doesn't equal Vy */
-		if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
-			pc += 4;
-		else pc += 2;
+
+	case 0xF000:
+		switch (opcode && 0x00FF)
+		{
+		case 0x0007:	/* LD Vx, Dt | Set Vx = delay timer value */
+			break;
+
+		case 0x000A:	/* LD Vx, K | Wait for a key press, store the value of the key in Vx. */
+			break;
+
+		case 0x0015:	/* LD DT, Vx | Set delay timer = Vx */
+			break;
+
+		case 0x0018:	/* LD ST, Vx | Set sound timer = Vx  */
+			break;
+
+		case 0x001E:	/* ADD I, Vx | Set I = I + Vx */
+			break;
+
+		case 0x0029:	/* LD F, Vx | Set I = location of sprite for digit Vx */ 
+			break;
+
+		case 0x0033:	/* LD B, Vx | Store BCD representation of Vx in memory location I, I+1 and I+2 */
+			break;
+
+		case 0x0055:	/* LD[I], Vx | Store registers V0 trough Vx in memory starting at location I */
+			break;
+
+		case 0x0065:	/*LD Vx, [I] | Read registers V0 through Vx from memory starting at location I*/
+			break;
+		}
 		break;
 	}
 }
