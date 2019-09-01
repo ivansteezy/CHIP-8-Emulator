@@ -1,9 +1,9 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-struct _cpu
+struct Chip8
 {
-	_cpu() {}
+	Chip8() {}
 	//CHIP-8 tiene 35 opcodes, todo son de 2 bytes
 	unsigned short opcode;
 
@@ -92,6 +92,7 @@ struct _cpu
 	void initialize();
 	void emulateCycle();
 	void decodeOpcode();
+	void load();
 };
 
 #endif // !CPU_H_

@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include <iostream>
 
-_cpu* myChip = new _cpu();
+Chip8* myChip = new Chip8();
 
 int main()
 {
