@@ -8,8 +8,8 @@ Chip8* myChip = new Chip8();
 int main()
 {
 	//Prueba de decodificacion de opcodes, a
-	myChip->memory[0] = 0x1B;
-	myChip->memory[1] = 0xCE;
+	myChip->memory[0] = 0x8B;
+	myChip->memory[1] = 0xF0;
 	myChip->emulateCycle();
 
 	return 0;
