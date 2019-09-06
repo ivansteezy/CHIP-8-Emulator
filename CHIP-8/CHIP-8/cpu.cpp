@@ -196,23 +196,27 @@ void Chip8::decodeOpcode()
 			"y PC vale: " << pc << std::endl;
 		break;
 
-	case 0xC000: /* RND Vx, Byte | Set Vx = random byte AND kk */
+	case 0xC000:	/* RND Vx, Byte | Set Vx = random byte AND kk */
+	{			
 		std::random_device rd;
 		std::mt19937 mt(rd());
-		std::uniform_real_distribution<int> dist(0x00, 0xFF);
+		std::uniform_real_distribution<double> dist(0x00, 0xFF);
 		V[(opcode & 0x0F00) >> 8] = dist(mt);
 		break;
+	}
 
 	case 0xD000: /* DRW Vx, Vy, nibble | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
-		
+		///TODO
 		break;
 
 	case 0xE000:
 		switch (opcode && 0x000F)
 		{
 		case 0x000E:	/* SKP Vx | Skip next instruction if key with the value of Vx is pressed */
+			///TODO
 			break;
 		case 0x0001:	/* SKNP Vx | Skip next instruction if key with the value of Vx is not */
+			///TODO
 			break;
 		}
 		break;
@@ -221,30 +225,59 @@ void Chip8::decodeOpcode()
 		switch (opcode && 0x00FF)
 		{
 		case 0x0007:	/* LD Vx, Dt | Set Vx = delay timer value */
+			V[(opcode & 0x0F00) >> 8] = delay_timer;
+			pc += 2;
 			break;
 
 		case 0x000A:	/* LD Vx, K | Wait for a key press, store the value of the key in Vx. */
+			///TODO
 			break;
+			
 
 		case 0x0015:	/* LD DT, Vx | Set delay timer = Vx */
+			delay_timer = V[(opcode & 0x0F00) >> 8];
+			pc += 2;
 			break;
 
 		case 0x0018:	/* LD ST, Vx | Set sound timer = Vx  */
+			sound_timer = V[(opcode & 0x0F00) >> 8];
+			pc += 2;
 			break;
 
 		case 0x001E:	/* ADD I, Vx | Set I = I + Vx */
+			if (i + V[opcode & 0x0F00] >> 8 > 0xFFF)
+				V[0xF] = 1;
+			else
+				V[0xF] = 0;
+			i += V[(opcode & 0x0F00) >> 8];
+			pc += 2;
 			break;
 
 		case 0x0029:	/* LD F, Vx | Set I = location of sprite for digit Vx */ 
+			///TODO
 			break;
 
 		case 0x0033:	/* LD B, Vx | Store BCD representation of Vx in memory location I, I+1 and I+2 */
+			memory[i] = V[(opcode & 0x0F00) >> 8] / 100;
+			memory[i + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
+			memory[i + 2] = V[(opcode & 0x0F00) >> 8] % 10;
+			pc += 2;
 			break;
 
 		case 0x0055:	/* LD[I], Vx | Store registers V0 trough Vx in memory starting at location I */
+			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); ++j)
+				memory[i + j] = V[j];
+
+			i += ((opcode & 0x0F00) >> 8) + 1;
+			pc += 2;
 			break;
 
 		case 0x0065:	/*LD Vx, [I] | Read registers V0 through Vx from memory starting at location I*/
+			for (int j = 0; i < j <= ((opcode & 0x0F00) >> 8); ++j)
+				V[i] = memory[i + j];
+
+			i += ((opcode & 0x0F00) >> 8) + 1;
+			pc += 2; 
 			break;
 		}
 		break;
@@ -258,9 +291,9 @@ void Chip8::load()
 
 auto readFileData(std::string const& filepath)
 {
-	auto fileSize = std::filesystem::file_size(filepath);
+	/*auto fileSize = std::filesystem::file_size(filepath);
 	auto buf = std::make_unique<std::byte>(fileSize);
 	std::basic_ifstream<std::byte> ifs(filepath, std::ios::binary); //??
 	ifs.read(buf.get(), fileSize);	//??
-	return buf;
+	return buf;*/
 }
