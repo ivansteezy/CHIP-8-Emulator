@@ -7,6 +7,7 @@
 #include <iostream>	//For std::cout
 #include <cstddef>	//For std::byte
 #include <filesystem>
+#include <iterator>
 
 void Chip8::initialize()
 {
@@ -49,7 +50,7 @@ void Chip8::emulateCycle()
 	//Fetch Opcode
 	//Se obtendran los opcodes almacenados en el array en el indice el pc, 
 	//un opcodo es 2 bytes long así que obtendremos 2 bytes y los mezclaremos
-	opcode = memory[0] << 8 | memory[1];
+	opcode = memory[pc] << 8 | memory[pc + 1];
 	//Decode Opcode
 	//Dependiendo de "opcode", verificaremos en la tabla de opcodes la instruccion correspondiente (la tabla es opcodes.h)
 	decodeOpcode();
@@ -72,7 +73,7 @@ void Chip8::emulateCycle()
 
 void Chip8::decodeOpcode()
 {
-	//TODO escribir todos los opcodes tal como se hizo aquí.
+	//TODO Make all the opcodes for key intput, sound, and video
 	switch (opcode & 0xF000)
 	{
 	case 0x0000:
@@ -192,11 +193,9 @@ void Chip8::decodeOpcode()
 		//Execute opcode
 		i = opcode & 0x0FFF; //Sets I to the adress NNN
 		pc += 2;
-		std::cout << "La instruccion fue ANNN e I vale: " << i <<
-			"y PC vale: " << pc << std::endl;
 		break;
 
-	case 0xC000:	/* RND Vx, Byte | Set Vx = random byte AND kk */
+	case 0xC000:	/* RND Vx, Byte | Set Vx = random byte AND kk  check this!!*/
 	{			
 		std::random_device rd;
 		std::mt19937 mt(rd());
@@ -231,8 +230,7 @@ void Chip8::decodeOpcode()
 
 		case 0x000A:	/* LD Vx, K | Wait for a key press, store the value of the key in Vx. */
 			///TODO
-			break;
-			
+			break;	
 
 		case 0x0015:	/* LD DT, Vx | Set delay timer = Vx */
 			delay_timer = V[(opcode & 0x0F00) >> 8];
@@ -254,7 +252,8 @@ void Chip8::decodeOpcode()
 			break;
 
 		case 0x0029:	/* LD F, Vx | Set I = location of sprite for digit Vx */ 
-			///TODO
+			i = V[(opcode & 0x0F00) >> 8] * 0x5;
+			pc += 2;
 			break;
 
 		case 0x0033:	/* LD B, Vx | Store BCD representation of Vx in memory location I, I+1 and I+2 */
@@ -284,16 +283,28 @@ void Chip8::decodeOpcode()
 	}
 }
 
-void Chip8::load()
+void Chip8::load(const std::string& romPath)
 {
-	//TODO: Implementar la manera de leer las roms con files en C++17
-}
+	initialize();
+	std::cout << "Loading ROM: " << romPath << "..." << std::endl;
 
-auto readFileData(std::string const& filepath)
-{
-	/*auto fileSize = std::filesystem::file_size(filepath);
-	auto buf = std::make_unique<std::byte>(fileSize);
-	std::basic_ifstream<std::byte> ifs(filepath, std::ios::binary); //??
-	ifs.read(buf.get(), fileSize);	//??
-	return buf;*/
+	std::ifstream file(romPath, std::ios::binary);
+	file.unsetf(std::ios::skipws);
+	std::streampos fileSize;
+
+	file.seekg(0, std::ios::end);
+	fileSize = file.tellg();
+	file.seekg(0, std::ios::beg);
+
+	std::vector<unsigned char> buffer;
+	buffer.reserve(fileSize);
+	buffer.insert(buffer.begin(), std::istream_iterator<unsigned char>(file), std::istream_iterator<unsigned char>());
+
+	if ((4096 - 512) > fileSize)
+	{
+		for (auto i = 0; i < fileSize; i++)
+		{
+			memory[i + 512] = buffer.at(i);
+		}
+	}
 }

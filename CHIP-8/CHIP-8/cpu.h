@@ -1,6 +1,12 @@
 #ifndef CPU_H_
 #define CPU_H_
 
+#include <filesystem>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
 struct Chip8
 {
 	Chip8() {}
@@ -92,7 +98,7 @@ struct Chip8
 	void initialize();
 	void emulateCycle();
 	void decodeOpcode();
-	void load();
+	void load(const std::string& romPath);
 };
 
 #endif // !CPU_H_
