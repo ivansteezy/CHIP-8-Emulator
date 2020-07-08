@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <ctime>
 
 
 struct Chip8
@@ -77,7 +78,7 @@ struct Chip8
 
 	//Los graficos del CHIP-8 son unicamente blanco o negro
 	//con un total de 2048 pixeles(64px x 32px)
-	unsigned char gfx[64 * 32];
+	char gfx[64 * 32];
 
 	//El CHIP-8 no cuenta con ningun tipo de interrupcion 
 	//Pero existen 2 registros que cuentan a 60hz hasta 0
@@ -100,5 +101,11 @@ struct Chip8
 	void decodeOpcode();
 	void load(const std::string& romPath);
 };
+
+static void Expansion(char* from, uint32_t* to)
+{
+	for (int i = 0; i < 2048; i++)
+		to[i] = (from[i]) ? -1 : 0;
+}
 
 #endif // !CPU_H_
