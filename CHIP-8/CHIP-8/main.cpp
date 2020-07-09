@@ -10,7 +10,7 @@ int main()
 {
 	Chip8* myChip = new Chip8();
 	// this now load rom file into memory
-	myChip->load("C:\\Users\\Iván\\Downloads\\PONG");
+	myChip->load("C:\\Users\\Iván\\Downloads\\TETRIS");
 
 	int mustQuit = 0;
 	int lastTicks = 0;
@@ -41,25 +41,35 @@ int main()
 	Expansion(myChip->gfx, (Uint32*)surface->pixels);
 	SDL_UnlockTexture(tex);
 
+	int cycles = 0;
+
 	while (!mustQuit)
 	{
-		while(SDL_PollEvent(&ev)) 
+		while(SDL_PollEvent(&ev))
 		{
-			if (ev.type == SDL_QUIT)
+			switch(ev.type)
 			{
+			case SDL_QUIT:
 				mustQuit = 1;
+				break;
 			}
+		}
+
+		if (SDL_GetTicks() - cycles > 1)
+		{
+			myChip->emulateCycle();
+			cycles = SDL_GetTicks();
 		}
 
 		if (SDL_GetTicks() - lastTicks > (1000 / 60))
 		{
-			myChip->emulateCycle();
+			if (myChip->delay_timer) myChip->delay_timer--;
+			if (myChip->sound_timer) myChip->sound_timer--;
 
 			SDL_LockTexture(tex, NULL, &surface->pixels, &surface->pitch);
 			Expansion(myChip->gfx, (Uint32*)surface->pixels);
 			SDL_UnlockTexture(tex);
 
-			SDL_RenderClear(rnd);
 			SDL_RenderCopy(rnd, tex, NULL, NULL);
 			SDL_RenderPresent(rnd);
 			lastTicks = SDL_GetTicks();

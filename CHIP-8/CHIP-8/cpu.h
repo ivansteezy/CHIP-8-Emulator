@@ -7,6 +7,8 @@
 #include <string>
 #include <ctime>
 
+#include <SDL.h>
+
 
 struct Chip8
 {
@@ -28,7 +30,7 @@ struct Chip8
 	//El chip-8 contiene hard-codeada un font
 	unsigned char font[80]
 	{
-		0x0F, 0x90, 0x90, 0x90, 0xF0,	//0
+		0xF0, 0x90, 0x90, 0x90, 0xF0,	//0
 		0x20, 0x60, 0x20, 0x20, 0x70,	//1
 		0xF0, 0x10, 0xF0, 0x80, 0xF0,	//2
 		0xF0, 0x10, 0xF0, 0x10, 0xF0,	//3
@@ -44,6 +46,25 @@ struct Chip8
 		0xE0, 0x90, 0x90, 0x90, 0xE0,	//D
 		0xF0, 0x80, 0xF0, 0x80, 0xF0,	//E
 		0xF0, 0x80, 0xF0, 0x80, 0x80,	//F
+	};
+
+	 char keys[16] = {
+		SDL_SCANCODE_X, //0
+		SDL_SCANCODE_1, //1
+		SDL_SCANCODE_2, //2
+		SDL_SCANCODE_3, //3
+		SDL_SCANCODE_Q, //4
+		SDL_SCANCODE_W, //5
+		SDL_SCANCODE_E, //6
+		SDL_SCANCODE_A, //7
+		SDL_SCANCODE_S, //8
+		SDL_SCANCODE_D, //9
+		SDL_SCANCODE_Z, //A
+		SDL_SCANCODE_C, //B
+		SDL_SCANCODE_4, //C
+		SDL_SCANCODE_R, //D
+		SDL_SCANCODE_F, //E
+		SDL_SCANCODE_V //F
 	};
 	
 	
@@ -94,12 +115,13 @@ struct Chip8
 	unsigned short sp;
 
 	//Finalmente el CHIP-8 tiene un teclado HEX based (0x0, 0xF)
-	unsigned char key[16];
+	bool drawFlag;
 
 	void initialize();
 	void emulateCycle();
 	void decodeOpcode();
 	void load(const std::string& romPath);
+	int IsKeyDown(char key);
 };
 
 static void Expansion(char* from, uint32_t* to)
@@ -107,5 +129,4 @@ static void Expansion(char* from, uint32_t* to)
 	for (int i = 0; i < 2048; i++)
 		to[i] = (from[i]) ? -1 : 0;
 }
-
 #endif // !CPU_H_

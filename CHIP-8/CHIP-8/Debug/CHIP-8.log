@@ -1,7 +1,6 @@
 ﻿  cpu.cpp
-C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(275,7): warning C4554: ">>": compruebe la prioridad de operador para posibles errores; utilice paréntesis para indicar la prioridad
-C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(304,53): warning C4804: '<=': uso no seguro del tipo 'bool' en la operación
-C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(329,17): warning C4244: 'argumento': conversión de 'std::streamoff' a 'const unsigned int'; posible pérdida de datos
+C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(52,12): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(360,17): warning C4244: 'argumento': conversión de 'std::streamoff' a 'const unsigned int'; posible pérdida de datos
   main.cpp
   Generando código...
   CHIP-8.vcxproj -> C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\Debug\CHIP-8.exe

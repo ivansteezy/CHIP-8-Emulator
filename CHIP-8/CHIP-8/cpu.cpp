@@ -1,6 +1,5 @@
 /*Ninji 2019*/
 #include "cpu.h"
-#include "opcodes.h"
 
 #include <random>	//For std::random_device
 #include <vector>	//For std::vector
@@ -42,52 +41,43 @@ void Chip8::initialize()
 		memory[l] = 0;
 	}
 
-	//TODO cargar el fonset predeterminado y resettear los timers
+	for (int i = 0; i < 80; ++i) 
+	{
+		memory[i] = font[i];
+	}
+
+	delay_timer = 0;
+	sound_timer = 0;
+
+	srand(time(NULL));
 }
 
 void Chip8::emulateCycle()
 {
-	//Fetch Opcode
-	//Se obtendran los opcodes almacenados en el array en el indice el pc, 
-	//un opcodo es 2 bytes long así que obtendremos 2 bytes y los mezclaremos
 	opcode = memory[pc] << 8 | memory[pc + 1];
-	//Decode Opcode
-	//Dependiendo de "opcode", verificaremos en la tabla de opcodes la instruccion correspondiente (la tabla es opcodes.h)
 	decodeOpcode();
-
-	//Actualizamos los timers
-	/*
-	if (delay_timer > 0)
-	{
-		--delay_timer;
-	}
-	if (sound_timer > 0)
-	{
-		if (sound_timer == 1)
-		{
-			std::cout << "Beep" << std::endl;
-			--sound_timer;
-		}
-	}*/
 }
 void Chip8::decodeOpcode()
 {
 	switch (opcode & 0xF000)
 	{
 	case 0x0000:
-		if ((opcode & 0x00FF) == 0x00E0) /*00E0 | Clears the screen.*/
+		switch (opcode & 0x000F)
 		{
-			for (int i = 0; i < 2048; ++i) { gfx[i] = 0; }
-			pc += 2;
-		}
-		if ((opcode & 0x00FF) == 0x00EE) /*00EE | Returns from a sub routine.*/
-		{ 
-			if(sp > 0)
+		case 0x0000:
+			for (int i = 0; i < 2048; ++i)
 			{
-				--sp;
-				pc = stack[sp];
-				pc += 2;
+				gfx[i] = 0;
 			}
+			drawFlag = true;
+			pc += 2;
+			break;
+
+		case 0x000E:
+			--sp;
+			pc = stack[sp];
+			pc += 2;
+			break;
 		}
 		break;
 
@@ -96,19 +86,17 @@ void Chip8::decodeOpcode()
 		break;
 		/*from here...*/
 	case 0x2000: /* 2NNN | Calls subroutine at NNN */
-		if (sp < 16)
-		{
-			stack[sp] = pc;
-			++sp;
-			pc = opcode & 0x0FFF;
-		}
+		//if (sp < 16)
+		stack[sp] = pc;
+		++sp;
+		pc = opcode & 0x0FFF;
 		break;
 
 	case 0x3000: /* 3XNN | Skip the next instruction if Vx equals NN */
-		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))	
+		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
 			pc += 4;
-		else 
-			pc += 2;	
+		else
+			pc += 2;
 		break;
 
 	case 0x4000: /* 4XNN | Skips the next instruction if VX doesnt equal NN */
@@ -119,9 +107,11 @@ void Chip8::decodeOpcode()
 		break;
 
 	case 0x5000: /* 5XY0 | Skips the next instruction if VX equals VY. */
-		if (V[(opcode & 0x0F00) >> 8] == V[opcode & 0x00F0] >> 4) pc += 4;
-		else pc += 2;
-		break;
+		if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
+            pc += 4;
+        else
+            pc += 2;
+        break;
 
 	case 0x6000: /* 6XNN | Sets VX to NN */
 		V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
@@ -138,36 +128,42 @@ void Chip8::decodeOpcode()
 		{
 		case 0x0000: /*LD Vx, Vy | Sets Vx to the value of Vy */
 			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
-			pc += 2;
+            pc += 2;
 			break;
+
 		case 0x0001: /*OR Vx, Vy | Sets Vx to Vx or Vy (Bitwise or) */
 			V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;
+
 		case 0x0002: /*AND Vx, Vy | Sets Vx to Vx and Vy (Bitwise and) */
 			V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;
+
 		case 0x0003: /*XOR Vx, Vy | Sets Vx to Vx xor Vy */
-			V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F00) >> 4];
+			V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;
 		case 0x0004: /*ADD Vx, Vy | Adds Vy to Vx. VG is set to 1 when there's a carry, and to 0 when there isn't */
-			V[(opcode & 0x0F00 >> 8)] += V[(opcode & 0x00F00) >> 4];
+			V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
 			if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8]))
 				V[0xF] = 1;
 			else
 				V[0xF] = 0;
 			pc += 2;
 			break;
+
 		case 0x0005: /*SUB Vx, Vy | Vy is subtracted from Vx. Vf is set to 0 when there's a borrow, and 1 when there isnt'n */
-			if (V[(opcode & 0x00F0 >> 4)] > V[(opcode & 0x0F00) >> 8])
+			if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8])
 				V[0xF] = 0;
 			else
 				V[0xF] = 1;
+
 			V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;
+
 		case 0x0006: /*SHR Vx {, Vy} | Stores the least significant bit of Vx in Vf and then shifts Vx to the right by 1 */
 			V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
 			V[(opcode & 0x0F00) >> 8] >>= 1;
@@ -175,11 +171,12 @@ void Chip8::decodeOpcode()
 			break;
 
 		case 0x0007: /*SUBN Vx, Vy | Sets vx to Vy minus Vx. Vf is set to 0 when there's a borrow, and 1 when isn't */
-			if (V[(opcode & 0x0F00 >> 8)] > V[(opcode & 0x00F0) >> 4])
+			if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])
 				V[0xF] = 0;
 			else
 				V[0xF] = 1;
-			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0 >> 4)] - V[(opcode & 0x0F00 >> 8)];
+			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00 >> 8)];
+			pc += 2;
 			break;
 		case 0x000E: /*SHL Vx {, Vy} | Stores the most significant bit of Vx in Vf and then shifts Vx to left by 1 */
 			V[0xF] = V[(opcode & 0x0F00) >> 8] >> 7;
@@ -189,15 +186,16 @@ void Chip8::decodeOpcode()
 		default:
 			std::cout << "No se conoce el opcode: " << opcode << std::endl;
 		}
+		break;
 	
 	case 0x9000: /*SNE Vx, Vy | Skips the next instruction if Vx doesn't equal Vy */
 		if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
 			pc += 4;
-		else pc += 2;
-		// V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4] ? pc += 4 : pc += 2;
+		else 
+			pc += 2;
 		break;
 
-	case 0xA000: //Aquellos que comiencen con A
+	case 0xA000:
 		//Unicamente existe una instruccion "ANNN"
 		//Execute opcode
 		i = opcode & 0x0FFF; //Sets I to the adress NNN
@@ -219,32 +217,50 @@ void Chip8::decodeOpcode()
 	}
 
 	case 0xD000: /* DRW Vx, Vy, nibble | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
+	{
+		unsigned short x = V[(opcode & 0x0F00) >> 8];
+		unsigned short y = V[(opcode & 0x00F0) >> 4];
+		unsigned short height = opcode & 0x000F;
+		unsigned short pixel;
+
 		V[0xF] = 0;
-		for (int j = 0; j < (opcode & 0x000F); j++)
+		for (int yline = 0; yline < height; yline++)
 		{
-			uint8_t sprite = memory[i + j];
-			for (int i = 0; i < 8; i++)
+			pixel = memory[i + yline];
+			for (int xline = 0; xline < 8; xline++)
 			{
-				int px = (V[opcode & 0x0F00 >> 8] + i) & 63;
-				int py = (V[opcode & 0x00F0 >> 4] + j) & 31;
-
-				int pos = 64 * py + px;
-				int pixel = (sprite & (1 << (7 - i))) != 0;
-
-				V[0xF] |= (gfx[pos] & pixel);
-				gfx[pos] ^= pixel;
+				if ((pixel & (0x80 >> xline)) != 0)
+				{
+					if (gfx[(x + xline + ((y + yline) * 64))] == 1)
+					{
+						V[0xF] = 1;
+					}
+					gfx[x + xline + ((y + yline) * 64)] ^= 1;
+				}
 			}
 		}
-		break;
+
+		drawFlag = true;
+		pc += 2;
+	}
+	break;
 
 	case 0xE000:
 		switch (opcode & 0x000F)
 		{
 		case 0x000E:	/* SKP Vx | Skip next instruction if key with the value of Vx is pressed */
-			///TODO keyboard
+			if (IsKeyDown(V[(opcode & 0x0F00) >> 8]))
+				//pc = (pc += 2) & 0xFFF;
+				pc += 4;
+			else
+				pc += 2;
 			break;
 		case 0x0001:	/* SKNP Vx | Skip next instruction if key with the value of Vx is not */
-			///TODO keyboard
+			if (!IsKeyDown(V[(opcode & 0x0F00) >> 8]))
+				//pc = (pc += 2) & 0xFFF;
+				pc += 4;
+			else
+				pc += 2;
 			break;
 		}
 		break;
@@ -258,8 +274,23 @@ void Chip8::decodeOpcode()
 			break;
 
 		case 0x000A:	/* LD Vx, K | Wait for a key press, store the value of the key in Vx. */
-			///TODO keyboard
-			break;	
+		{
+			bool key_pressed = false;
+
+			for (int i = 0; i < 16; i++)
+			{
+				if (keys[i] != 0)
+				{
+					V[(opcode & 0x0F00) >> 8] = i;
+					key_pressed = true;
+				}
+			}
+
+			if (!key_pressed)
+				return;
+			pc += 2;
+		}	
+		break;	
 
 		case 0x0015:	/* LD DT, Vx | Set delay timer = Vx */
 			delay_timer = V[(opcode & 0x0F00) >> 8];
@@ -272,7 +303,7 @@ void Chip8::decodeOpcode()
 			break;
 
 		case 0x001E:	/* ADD I, Vx | Set I = I + Vx */
-			if (i + V[opcode & 0x0F00] >> 8 > 0xFFF)
+			if (i + V[(opcode & 0x0F00) >> 8] > 0xFFF)
 				V[0xF] = 1;
 			else
 				V[0xF] = 0;
@@ -286,25 +317,25 @@ void Chip8::decodeOpcode()
 			break;
 
 		case 0x0033:	/* LD B, Vx | Store BCD representation of Vx in memory location I, I+1 and I+2 */
-			memory[i] = V[(opcode & 0x0F00) >> 8] / 100;
+			memory[i]     = V[(opcode & 0x0F00) >> 8] / 100;
 			memory[i + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
 			memory[i + 2] = V[(opcode & 0x0F00) >> 8] % 10;
 			pc += 2;
 			break;
 
 		case 0x0055:	/* LD[I], Vx | Store registers V0 trough Vx in memory starting at location I */
-			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); ++j)
+			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); j++)
 				memory[i + j] = V[j];
 
-			i += ((opcode & 0x0F00) >> 8) + 1;
+			//i += ((opcode & 0x0F00) >> 8) + 1;
 			pc += 2;
 			break;
 
 		case 0x0065:	/*LD Vx, [I] | Read registers V0 through Vx from memory starting at location I*/
-			for (int j = 0; i < j <= ((opcode & 0x0F00) >> 8); ++j)
-				V[i] = memory[i + j];
+			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); j++)
+				V[j] = memory[i + j];
 
-			i += ((opcode & 0x0F00) >> 8) + 1;
+			//i += ((opcode & 0x0F00) >> 8) + 1;
 			pc += 2; 
 			break;
 		}
@@ -336,4 +367,11 @@ void Chip8::load(const std::string& romPath)
 			memory[i + 512] = buffer.at(i);
 		}
 	}
+}
+
+int Chip8::IsKeyDown(char key)		//in line this
+{
+	const Uint8* sdlKeys = SDL_GetKeyboardState(NULL);
+	Uint8 realKey = keys[(int)key];
+	return sdlKeys[realKey];
 }
