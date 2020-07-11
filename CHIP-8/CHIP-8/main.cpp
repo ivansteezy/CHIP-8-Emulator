@@ -6,8 +6,9 @@
 
 int main()
 {
-	auto myChip = std::make_unique<Chip8>();
-	myChip->Load("C:\\Users\\Iván\\Downloads\\TETRIS");
+	Chip8* myChip = new Chip8();
+	// this now load rom file into memory
+	myChip->Load("C:\\Users\\Iván\\Downloads\\PONG");
 
 	int mustQuit = 0;
 	int lastTicks = 0;

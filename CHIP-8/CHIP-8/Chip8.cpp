@@ -1,4 +1,5 @@
 #include "Chip8.hpp"
+#include "Renderer.hpp"
 
 #include <random>	//For std::random_device
 #include <vector>	//For std::vector
@@ -62,6 +63,7 @@ void Chip8::EmulateCycle()
 	DecodeOpcode();
 }
 
+// this function needs some deep refactor
 void Chip8::DecodeOpcode()
 {
 	switch (opcode & 0xF000)
