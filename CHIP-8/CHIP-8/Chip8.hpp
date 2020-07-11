@@ -23,7 +23,7 @@ struct Chip8
 	std::array<uint8_t, 80> font;
 	std::array<uint16_t, 16> stack;
 	std::array<uint8_t, 4096> memory;
-	std::array<uint8_t, 64 * 32> screen;
+	char screen[2048];
 	
 	uint16_t i;
 	uint16_t sp;
@@ -33,12 +33,6 @@ struct Chip8
 	uint8_t delayTimer;
 	uint8_t soundTimer;
 };
-
-static void Expansion(std::array<uint8_t, 64 * 32> from, uint32_t* to)
-{
-	for (int i = 0; i < 2048; i++)
-		to[i] = (from[i]) ? -1 : 0;
-}
 
 
 #endif // !CPU_HPP_

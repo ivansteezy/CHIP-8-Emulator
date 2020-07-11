@@ -22,7 +22,6 @@ Render::Chip8Window::Chip8Window(const std::string& windowName, const int& width
 		0x0000FF00,
 		0x000000FF,
 		0xFF000000);
-
 	SDL_LockTexture(m_texture, NULL, &m_surface->pixels, &m_surface->pitch);
 	Expansion(m_chip->screen, (Uint32*)m_surface->pixels);
 	SDL_UnlockTexture(m_texture);
@@ -30,27 +29,9 @@ Render::Chip8Window::Chip8Window(const std::string& windowName, const int& width
 
 void Render::Chip8Window::Begin()
 {
-	int mustQuit = 0;
-	int cycles = 0;
-	
-	while (!mustQuit)
+	while (!m_mustQuit)
 	{
-		while (SDL_PollEvent(&m_event))
-		{
-			switch (m_event.type)
-			{
-			case SDL_QUIT: mustQuit = 1; break;
-			}
-		
-
-			if (SDL_GetTicks() - cycles > 1)
-			{
-				m_chip->EmulateCycle();
-				cycles = SDL_GetTicks();
-			}
-
-			RenderWindow();
-		}
+		RenderWindow();
 	}
 
 	SDL_DestroyRenderer(m_renderer);
@@ -60,8 +41,23 @@ void Render::Chip8Window::Begin()
 
 void Render::Chip8Window::RenderWindow()
 {
-	int lastTicks = 0;
-	if (SDL_GetTicks() - lastTicks > (1000 / 60))
+	while (SDL_PollEvent(&m_event))
+	{
+		switch (m_event.type)
+		{
+		case SDL_QUIT:
+			m_mustQuit = 1;
+			break;
+		}
+	}
+
+	if (SDL_GetTicks() - m_cycles > 1)
+	{
+		m_chip->EmulateCycle();
+		m_cycles = SDL_GetTicks();
+	}
+
+	if (SDL_GetTicks() - m_lastTicks > (1000 / 60))
 	{
 		if (m_chip->delayTimer) m_chip->delayTimer--;
 		if (m_chip->soundTimer) m_chip->soundTimer--;
@@ -72,6 +68,6 @@ void Render::Chip8Window::RenderWindow()
 
 		SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
 		SDL_RenderPresent(m_renderer);
-		lastTicks = SDL_GetTicks();
+		m_lastTicks = SDL_GetTicks();
 	}
 }

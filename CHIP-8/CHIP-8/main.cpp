@@ -3,79 +3,15 @@
 #include <SDL.h>
 
 #include "Chip8.hpp"
+#include "Renderer.hpp"
 
 int main()
 {
-	Chip8* myChip = new Chip8();
-	// this now load rom file into memory
+	auto myChip = std::make_shared<Chip8>();
 	myChip->Load("C:\\Users\\Iván\\Downloads\\PONG");
 
-	int mustQuit = 0;
-	int lastTicks = 0;
-
-	//SDL shit
-	SDL_Event ev;
-
-	SDL_Init(SDL_INIT_EVERYTHING);
-
-	SDL_Window* win = SDL_CreateWindow("CHIP-8 Emulator",
-		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
-		640, 320,
-		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-
-	SDL_Renderer* rnd = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-
-	SDL_Texture* tex = SDL_CreateTexture(rnd, SDL_PIXELFORMAT_ABGR8888,
-		SDL_TEXTUREACCESS_STREAMING,
-		64, 32);
-
-	SDL_Surface* surface = SDL_CreateRGBSurface(NULL, 64, 32, 32,
-		0x00FF0000,
-		0x0000FF00,
-		0x000000FF,
-		0xFF000000);
-	SDL_LockTexture(tex, NULL, &surface->pixels, &surface->pitch);
-	Expansion(myChip->screen, (Uint32*)surface->pixels);
-	SDL_UnlockTexture(tex);
-
-	int cycles = 0;
-
-	while (!mustQuit)
-	{
-		while(SDL_PollEvent(&ev))
-		{
-			switch(ev.type)
-			{
-			case SDL_QUIT:
-				mustQuit = 1;
-				break;
-			}
-		}
-
-		if (SDL_GetTicks() - cycles > 1)
-		{
-			myChip->EmulateCycle();
-			cycles = SDL_GetTicks();
-		}
-
-		if (SDL_GetTicks() - lastTicks > (1000 / 60))
-		{
-			if (myChip->delayTimer) myChip->delayTimer--;
-			if (myChip->soundTimer) myChip->soundTimer--;
-
-			SDL_LockTexture(tex, NULL, &surface->pixels, &surface->pitch);
-			Expansion(myChip->screen, (Uint32*)surface->pixels);
-			SDL_UnlockTexture(tex);
-
-			SDL_RenderCopy(rnd, tex, NULL, NULL);
-			SDL_RenderPresent(rnd);
-			lastTicks = SDL_GetTicks();
-		}
-	}
-
-	SDL_DestroyRenderer(rnd);
-	SDL_DestroyWindow(win);
-	SDL_Quit();
+	auto renderer = std::make_shared<Render::Chip8Window>("Chip", 640, 320, myChip);
+	renderer->Begin();
+	
 	return 0;
 }

@@ -72,7 +72,10 @@ void Chip8::DecodeOpcode()
 		switch (opcode & 0x000F)
 		{
 		case 0x0000:
-			screen = { 0 };
+			for (int i = 0; i < (64 * 32); ++i)
+			{
+				screen[i] = 0;
+			}
 			pc += 2;
 			break;
 

@@ -18,12 +18,6 @@ namespace Render
 
 	private:
 		void RenderWindow();
-	public:
-		static void Expansion(std::array<uint8_t, 64 * 32> from, uint32_t* to)
-		{
-			for (int i = 0; i < 2048; i++)
-				to[i] = (from[i]) ? -1 : 0;
-		}
 
 	private:
 		SDL_Event m_event;
@@ -32,7 +26,17 @@ namespace Render
 		SDL_Surface* m_surface;
 		SDL_Renderer* m_renderer;
 		std::shared_ptr<Chip8> m_chip;
+
+		int m_lastTicks = 0;
+		int m_mustQuit = 0;
+		int m_cycles = 0;
 	};
+
+	static void Expansion(char* from, uint32_t* to)
+	{
+		for (int i = 0; i < 2048; i++)
+			to[i] = (from[i]) ? -1 : 0;
+	}
 }
 
 #endif
