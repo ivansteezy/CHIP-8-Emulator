@@ -1,10 +1,8 @@
 
-CHIP-8/.vs/CHIP-8/v16/.suo
-
-CHIP-8/.vs/CHIP-8/v16/ipch/AutoPCH/2a7d8679c6fada34/MAIN.ipch
-
-CHIP-8/.vs/CHIP-8/v16/ipch/AutoPCH/97e4a72e666834b1/CPU.ipch
-
-CHIP-8/.vs/CHIP-8/v16/Browse.VC.opendb
-
-CHIP-8/.vs/CHIP-8/v16/Browse.VC.db
+CHIP-8/.vs/
+CHIP-8/Debug/
+CHIP-8/Libraries/
+CHIP-8/CHIP-8/Debug/
+CHIP-8/CHIP-8/CHIP-8.vcxproj
+CHIP-8/CHIP-8/CHIP-8.vcxproj.filters
+CHIP-8/CHIP-8/CHIP-8.vcxproj.user
