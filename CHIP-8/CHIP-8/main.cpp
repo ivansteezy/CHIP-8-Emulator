@@ -2,15 +2,12 @@
 #include <iostream>
 #include <SDL.h>
 
-#include "cpu.h"
-
-Chip8* myChip = new Chip8();
+#include "Chip8.hpp"
 
 int main()
 {
-	Chip8* myChip = new Chip8();
-	// this now load rom file into memory
-	myChip->load("C:\\Users\\Iván\\Downloads\\TETRIS");
+	auto myChip = std::make_unique<Chip8>();
+	myChip->Load("C:\\Users\\Iván\\Downloads\\TETRIS");
 
 	int mustQuit = 0;
 	int lastTicks = 0;
@@ -38,7 +35,7 @@ int main()
 		0x000000FF,
 		0xFF000000);
 	SDL_LockTexture(tex, NULL, &surface->pixels, &surface->pitch);
-	Expansion(myChip->gfx, (Uint32*)surface->pixels);
+	Expansion(myChip->screen, (Uint32*)surface->pixels);
 	SDL_UnlockTexture(tex);
 
 	int cycles = 0;
@@ -57,17 +54,17 @@ int main()
 
 		if (SDL_GetTicks() - cycles > 1)
 		{
-			myChip->emulateCycle();
+			myChip->EmulateCycle();
 			cycles = SDL_GetTicks();
 		}
 
 		if (SDL_GetTicks() - lastTicks > (1000 / 60))
 		{
-			if (myChip->delay_timer) myChip->delay_timer--;
-			if (myChip->sound_timer) myChip->sound_timer--;
+			if (myChip->delayTimer) myChip->delayTimer--;
+			if (myChip->soundTimer) myChip->soundTimer--;
 
 			SDL_LockTexture(tex, NULL, &surface->pixels, &surface->pitch);
-			Expansion(myChip->gfx, (Uint32*)surface->pixels);
+			Expansion(myChip->screen, (Uint32*)surface->pixels);
 			SDL_UnlockTexture(tex);
 
 			SDL_RenderCopy(rnd, tex, NULL, NULL);

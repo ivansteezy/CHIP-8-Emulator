@@ -1,6 +1,6 @@
-﻿  cpu.cpp
-C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(52,12): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
-C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\cpu.cpp(360,17): warning C4244: 'argumento': conversión de 'std::streamoff' a 'const unsigned int'; posible pérdida de datos
+﻿  Chip8.cpp
+C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\Chip8.cpp(56,12): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\CHIP-8\Chip8.cpp(358,17): warning C4244: 'argumento': conversión de 'std::streamoff' a 'const unsigned int'; posible pérdida de datos
   main.cpp
   Generando código...
   CHIP-8.vcxproj -> C:\Users\Iván\Desktop\Mi-emulador-de-CHIP-8\CHIP-8\Debug\CHIP-8.exe
