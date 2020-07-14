@@ -1,12 +1,14 @@
 #ifndef CPU_HPP_
 #define CPU_HPP_
 
+#include <functional>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <ctime>
 #include <array>
+#include <map>
 
 #include <SDL.h>
 
@@ -17,6 +19,9 @@ struct Chip8
 	void EmulateCycle();
 	int  IsKeyDown(const char& key);
 	void Load(const std::string& romPath);
+	void CreateInstructionTable();
+
+	std::map<uint16_t, std::function<void()>> m_instructionTable;
 	
 	std::array<uint8_t, 16> V;
 	std::array<uint8_t, 16> keys;

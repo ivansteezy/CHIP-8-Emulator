@@ -213,11 +213,10 @@ void Chip8::DecodeOpcode()
 
 	case 0xC000:	/* RND Vx, Byte | Set Vx = random byte AND kk  check this!!*/
 	{			
-		/*std::random_device rd;
+		std::random_device rd;
 		std::mt19937 mt(rd());
-		std::uniform_real_distribution<double> dist(0x00, 0xFF);
-		V[(opcode & 0x0F00) >> 8] = dist(mt);*/
-		V[(opcode & 0x0F00) >> 8] = (rand() % (0xFF + 1)) & (opcode & 0x00FF);
+		std::uniform_real_distribution<> dist(0x00, 0xFF);
+		V[(opcode & 0x0F00) >> 8] = static_cast<int>(dist(mt)) & (opcode & 0x00FF);
 		pc += 2;
 		break;
 	}
@@ -370,6 +369,10 @@ void Chip8::Load(const std::string& romPath)
 			memory[i + 512] = buffer.at(i);
 		}
 	}
+}
+
+void Chip8::CreateInstructionTable()
+{
 }
 
 int Chip8::IsKeyDown(const char& key)
