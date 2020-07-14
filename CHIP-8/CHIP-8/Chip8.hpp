@@ -15,7 +15,7 @@
 struct Chip8
 {
 	Chip8();
-	void DecodeOpcode();
+
 	void EmulateCycle();
 	int  IsKeyDown(const char& key);
 	void Load(const std::string& romPath);
