@@ -219,11 +219,10 @@ void Chip8::CreateInstructionTable()
 	}));
 
 	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xC000, [&]() {	/* Cxkk | Set Vx = random byte AND kk.*/
-		/*std::random_device rd;
+		std::random_device rd;
 		std::mt19937 mt(rd());
 		std::uniform_real_distribution<> dist(0x00, 0xFF);
-		V[(opcode & 0x0F00) >> 8] = static_cast<int>(dist(mt)) & (opcode & 0x00FF);*/
-		V[(opcode & 0x0F00) >> 8] = (rand() % (0xFF + 1)) & (opcode & 0x00FF);
+		V[(opcode & 0x0F00) >> 8] = static_cast<int>(dist(mt)) & (opcode & 0x00FF);
 		pc += 2;
 	}));
 
