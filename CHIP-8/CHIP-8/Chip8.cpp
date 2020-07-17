@@ -93,7 +93,7 @@ void Chip8::CreateInstructionTable()
 	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {	//CLS
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() { /* 00E0 | Clears the display */
 			for (int i = 0; i < (64 * 32); ++i)
 			{
 				screen[i] = 0;
@@ -101,7 +101,7 @@ void Chip8::CreateInstructionTable()
 			pc += 2;
 			}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	//RET
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* 00EE | Returns from a subroutine */
 			--sp;
 			pc = stack[sp];
 			pc += 2;
@@ -148,54 +148,54 @@ void Chip8::CreateInstructionTable()
 	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x8000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {	/* LD Vx, Vy | Sets Vx to the value of Vy */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {	/* 8xy0 | Sets Vx = Vy */
 			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0001, [&]() {	/* OR Vx, Vy | Sets Vx to Vx or Vy (Bitwise or) */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0001, [&]() {	/* 8xy1 | Set Vx OR Vy */
 			V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0002, [&]() {	/* AND Vx, Vy | Sets Vx to Vx and Vy (Bitwise and) */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0002, [&]() {	/* 8xy2 | Set Vx = Vx AND Vy */
 			V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0003, [&]() {	/* XOR Vx, Vy | Sets Vx to Vx xor Vy */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0003, [&]() {	/* 8xy3 | Sets Vx = Vx XOR Vy */
 			V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0004, [&]() {	/*ADD Vx, Vy | Adds Vy to Vx. VG is set to 1 when there's a carry, and to 0 when there isn't */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0004, [&]() {	/* 8xy4 | Set Vx = Vx + Vy, set VF = carry */
 			V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
 			if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) V[0xF] = 1;
 			else																V[0xF] = 0;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0005, [&]() {	/*SUB Vx, Vy | Vy is subtracted from Vx. Vf is set to 0 when there's a borrow, and 1 when there isnt'n */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0005, [&]() {	/* 8xy5 | Set Vx = Vx - Vy, set VF = NOT borrow */
 			if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8]) V[0xF] = 0;
 			else													   V[0xF] = 1;
 			V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0006, [&]() {	/*SHR Vx {, Vy} | Stores the least significant bit of Vx in Vf and then shifts Vx to the right by 1 */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0006, [&]() {	/* 8xy6 | Set Vx = Vx SHR 1 */
 			V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
 			V[(opcode & 0x0F00) >> 8] >>= 1;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/*SUBN Vx, Vy | Sets vx to Vy minus Vx. Vf is set to 0 when there's a borrow, and 1 when isn't */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/*8xy7 | Set Vx = Vy - Vx, set VF = NOT borrow */
 			if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4]) V[0xF] = 0;
 			else													   V[0xF] = 1;
 			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00 >> 8)];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/*SHL Vx {, Vy} | Stores the most significant bit of Vx in Vf and then shifts Vx to left by 1 */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* 8xyE | Set Vx = Vx SHL 1. */
 			V[0xF] = V[(opcode & 0x0F00) >> 8] >> 7;
 			V[(opcode & 0x0F00)] <<= 1;
 			pc += 2;
@@ -204,26 +204,30 @@ void Chip8::CreateInstructionTable()
 		subMask.at(opcode & 0x000F)();
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x9000, [&]() { /*SNE Vx, Vy | Skips the next instruction if Vx doesn't equal Vy */
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x9000, [&]() { /*9xy0 | Skip next instruction if Vx != Vy */
 		if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]) pc += 4;
 		else														pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xA000, [&]() {
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xA000, [&]() { /* Annn | Set I = nnn*/
 		i = opcode & 0x0FFF;
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xB000, [&]() {	/* BNNN - Jumps to the address NNN plus V0. */
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xB000, [&]() {	/* Bnnn | Jump to location nnn + V0 */
 		pc = (opcode & 0x0FFF) + V[0];
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xC000, [&]() {	/* RND Vx, Byte | Set Vx = random byte AND kk  check this!!*/
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xC000, [&]() {	/* Cxkk | Set Vx = random byte AND kk.*/
+		/*std::random_device rd;
+		std::mt19937 mt(rd());
+		std::uniform_real_distribution<> dist(0x00, 0xFF);
+		V[(opcode & 0x0F00) >> 8] = static_cast<int>(dist(mt)) & (opcode & 0x00FF);*/
 		V[(opcode & 0x0F00) >> 8] = (rand() % (0xFF + 1)) & (opcode & 0x00FF);
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xD000, [&]() {	/* DRW Vx, Vy, nibble | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xD000, [&]() {	/* Dxyn | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
 		unsigned short x = V[(opcode & 0x0F00) >> 8];
 		unsigned short y = V[(opcode & 0x00F0) >> 4];
 		unsigned short height = opcode & 0x000F;
@@ -248,18 +252,18 @@ void Chip8::CreateInstructionTable()
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xE000, [&]() {	/* RND Vx, Byte | Set Vx = random byte AND kk  check this!!*/
+	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xE000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* SKP Vx | Skip next instruction if key with the value of Vx is pressed */
-			if (IsKeyDown(V[(opcode & 0x0F00) >> 8])) pc += 4;
-			else									  pc += 2;
-			}));
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* Ex9E | Skip next instruction if key with the value of Vx is pressed */
+			if (IsKeyDown(V[(opcode & 0x0F00) >> 8]))  pc += 4;
+			else									   pc += 2;
+		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0001, [&]() {	/* SKNP Vx | Skip next instruction if key with the value of Vx is not */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0001, [&]() {	/* ExA1 | Skip next instruction if key with the value of Vx is not */
 			if (!IsKeyDown(V[(opcode & 0x0F00) >> 8])) pc += 4;
 			else									   pc += 2;
-			}));
+		}));
 
 		subMask.at(opcode & 0x000F)();
 	}));
@@ -267,64 +271,62 @@ void Chip8::CreateInstructionTable()
 	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xF000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/* LD Vx, Dt | Set Vx = delay timer value */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/* Fx07  | Set Vx = delay timer value */
 			V[(opcode & 0x0F00) >> 8] = delayTimer;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000A, [&]() {	/* LD Vx, Dt | Set Vx = delay timer value */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000A, [&]() {	/* Fx0A | Wait for a key press, store the value of the key in Vx */
 			bool key_pressed = false;
 
 			for (int i = 0; i < 16; i++)
-			{
 				if (keys[i] != 0)
 				{
 					V[(opcode & 0x0F00) >> 8] = i;
 					key_pressed = true;
 				}
-			}
 
-			if (!key_pressed)
-				return;
+			if (!key_pressed) return;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0015, [&]() {	/* LD DT, Vx | Set delay timer = Vx */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0015, [&]() {	/* Fx15 | Set delay timer = Vx */
 			delayTimer = V[(opcode & 0x0F00) >> 8];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0018, [&]() {	/* LD ST, Vx | Set sound timer = Vx  */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0018, [&]() {	/* Fx18 | Set sound timer = Vx  */
 			soundTimer = V[(opcode & 0x0F00) >> 8];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x001E, [&]() {	/* ADD I, Vx | Set I = I + Vx */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x001E, [&]() {	/* Fx1E | Set I = I + Vx */
 			if (i + V[(opcode & 0x0F00) >> 8] > 0xFFF) V[0xF] = 1;
 			else									   V[0xF] = 0;
+
 			i += V[(opcode & 0x0F00) >> 8];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0029, [&]() {	/* LD F, Vx | Set I = location of sprite for digit Vx */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0029, [&]() {	/* Fx29 | Set I = location of sprite for digit Vx */
 			i = V[(opcode & 0x0F00) >> 8] * 0x5;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0033, [&]() {	/* LD F, Vx | Set I = location of sprite for digit Vx */
-			memory[i] = V[(opcode & 0x0F00) >> 8] / 100;
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0033, [&]() {	/* Fx33 | Set I = Store BCD representation of Vx in memory locations I, I+1, and I+2. */
+			memory[i]	  =  V[(opcode & 0x0F00) >> 8] / 100;
 			memory[i + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
-			memory[i + 2] = V[(opcode & 0x0F00) >> 8] % 10;
+			memory[i + 2] =  V[(opcode & 0x0F00) >> 8] % 10;
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0055, [&]() {	/* LD[I], Vx | Store registers V0 trough Vx in memory starting at location I */
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0055, [&]() {	/* Fx55 | Store registers V0 trough Vx in memory starting at location I */
 			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); j++)
 				memory[i + j] = V[j];
 			pc += 2;
 		}));
 
-		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0065, [&]() {	/*LD Vx, [I] | Read registers V0 through Vx from memory starting at location I*/
+		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0065, [&]() {	/* Fx65 | Read registers V0 through Vx from memory starting at location I */
 			for (int j = 0; j <= ((opcode & 0x0F00) >> 8); j++)
 				V[j] = memory[i + j];
 			pc += 2;

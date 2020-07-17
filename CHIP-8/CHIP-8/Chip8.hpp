@@ -29,7 +29,7 @@ struct Chip8
 	std::array<uint16_t, 16> stack;
 	std::array<uint8_t, 4096> memory;
 	char screen[2048];
-	
+
 	uint16_t i;
 	uint16_t sp;
 	uint16_t pc;
