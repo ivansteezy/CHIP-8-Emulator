@@ -114,17 +114,17 @@ void Machine::Chip8::CreateInstructionTable()
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x3000, [&]() {	/* 3XNN | Skip the next instruction if Vx equals NN */
 		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) pc += 4;
-		else												pc += 2;
+		else						    pc += 2;
 	}));
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x4000, [&]() {	/* 4XNN | Skips the next instruction if VX doesnt equal NN */
 		if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) pc += 4;
-		else												pc += 2;
+		else						    pc += 2;
 	}));
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x5000, [&]() {	/* 5XY0 | Skips the next instruction if VX equals VY. */
 		if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4]) pc += 4;
-		else														pc += 2;
+		else							    pc += 2;
 	}));
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x6000, [&]() {	/* 6XNN | Sets VX to NN */
@@ -163,13 +163,13 @@ void Machine::Chip8::CreateInstructionTable()
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0004, [&]() {	/* 8xy4 | Set Vx = Vx + Vy, set VF = carry */
 			V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
 			if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) V[0xF] = 1;
-			else																V[0xF] = 0;
+			else								    V[0xF] = 0;
 			pc += 2;
 		}));
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0005, [&]() {	/* 8xy5 | Set Vx = Vx - Vy, set VF = NOT borrow */
 			if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8]) V[0xF] = 0;
-			else													   V[0xF] = 1;
+			else							   V[0xF] = 1;
 			V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 		}));
@@ -182,7 +182,7 @@ void Machine::Chip8::CreateInstructionTable()
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/*8xy7 | Set Vx = Vy - Vx, set VF = NOT borrow */
 			if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4]) V[0xF] = 0;
-			else													   V[0xF] = 1;
+			else							   V[0xF] = 1;
 			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00 >> 8)];
 			pc += 2;
 		}));
@@ -198,7 +198,7 @@ void Machine::Chip8::CreateInstructionTable()
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x9000, [&]() { /*9xy0 | Skip next instruction if Vx != Vy */
 		if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]) pc += 4;
-		else														pc += 2;
+		else							    pc += 2;
 	}));
 
 	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xA000, [&]() { /* Annn | Set I = nnn*/
@@ -248,12 +248,12 @@ void Machine::Chip8::CreateInstructionTable()
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* Ex9E | Skip next instruction if key with the value of Vx is pressed */
 			if (IsKeyDown(V[(opcode & 0x0F00) >> 8]))  pc += 4;
-			else									   pc += 2;
+			else					   pc += 2;
 		}));
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0001, [&]() {	/* ExA1 | Skip next instruction if key with the value of Vx is not */
 			if (!IsKeyDown(V[(opcode & 0x0F00) >> 8])) pc += 4;
-			else									   pc += 2;
+			else					   pc += 2;
 		}));
 
 		subMask.at(opcode & 0x000F)();
@@ -293,7 +293,7 @@ void Machine::Chip8::CreateInstructionTable()
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x001E, [&]() {	/* Fx1E | Set I = I + Vx */
 			if (i + V[(opcode & 0x0F00) >> 8] > 0xFFF) V[0xF] = 1;
-			else									   V[0xF] = 0;
+			else					   V[0xF] = 0;
 
 			i += V[(opcode & 0x0F00) >> 8];
 			pc += 2;
