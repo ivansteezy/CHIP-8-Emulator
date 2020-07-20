@@ -2,10 +2,7 @@
 #define RENDERER_HPP_
 
 #include <memory>
-#include <string>
-#include <array>
 #include <SDL.h>
-
 #include "Chip8.hpp"
 
 namespace Render
@@ -13,7 +10,7 @@ namespace Render
 	class Chip8Window
 	{
 	public:
-		Chip8Window(const std::string& windowName, const int& width, const int& height, std::shared_ptr<Chip8>& chip);
+		Chip8Window(const std::string& windowName, const int& width, const int& height, std::shared_ptr<Machine::Chip8>& chip);
 		void Begin();
 
 	private:
@@ -25,11 +22,11 @@ namespace Render
 		SDL_Texture* m_texture;
 		SDL_Surface* m_surface;
 		SDL_Renderer* m_renderer;
-		std::shared_ptr<Chip8> m_chip;
+		std::shared_ptr<Machine::Chip8> m_chip;
 
-		int m_lastTicks = 0;
-		int m_mustQuit = 0;
 		int m_cycles = 0;
+		int m_mustQuit = 0;
+		int m_lastTicks = 0;
 	};
 
 	static void Expansion(char* from, uint32_t* to)

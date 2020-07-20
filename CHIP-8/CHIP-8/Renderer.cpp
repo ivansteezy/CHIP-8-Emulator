@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 
-Render::Chip8Window::Chip8Window(const std::string& windowName, const int& width, const int& height, std::shared_ptr<Chip8>& chip)
+Render::Chip8Window::Chip8Window(const std::string& windowName, const int& width, const int& height, std::shared_ptr<Machine::Chip8>& chip)
 	: m_chip(chip)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);

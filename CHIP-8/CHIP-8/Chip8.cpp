@@ -1,15 +1,7 @@
 #include "Chip8.hpp"
-#include "Renderer.hpp"
 
-#include <random>	//For std::random_device
-#include <vector>	//For std::vector
-#include <iostream>	//For std::cout
-#include <cstddef>	//For std::byte
-#include <filesystem>
-#include <iterator>
-
-Chip8::Chip8() : pc(0x200), opcode(0), i(0), sp(0), delayTimer(0), 
-				 soundTimer(0), screen{0}, stack{0}, V{0}, memory{0}
+Machine::Chip8::Chip8() : pc(0x200), opcode(0), i(0), sp(0), delayTimer(0), 
+						  soundTimer(0), screen{0}, stack{0}, V{0}, memory{0}
 {
 	keys = {
 		SDL_SCANCODE_X,
@@ -57,13 +49,13 @@ Chip8::Chip8() : pc(0x200), opcode(0), i(0), sp(0), delayTimer(0),
 	CreateInstructionTable();
 }
 
-void Chip8::EmulateCycle()
+void Machine::Chip8::EmulateCycle()
 {
 	opcode = memory[pc] << 8 | memory[pc + 1];
-	m_instructionTable.at(opcode & 0xF000)();
+	instructionTable.at(opcode & 0xF000)();
 }
 
-void Chip8::Load(const std::string& romPath)
+void Machine::Chip8::Load(const std::string& romPath)
 {
 	std::cout << "Loading ROM: " << romPath << "..." << std::endl;
 
@@ -88,9 +80,9 @@ void Chip8::Load(const std::string& romPath)
 	}
 }
 
-void Chip8::CreateInstructionTable()
+void Machine::Chip8::CreateInstructionTable()
 {
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() { /* 00E0 | Clears the display */
@@ -110,42 +102,42 @@ void Chip8::CreateInstructionTable()
 		subMask.at(opcode & 0x000F)();
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x1000, [&]() {	/* 1NNN | Jumps to address NNN */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x1000, [&]() {	/* 1NNN | Jumps to address NNN */
 		pc = opcode & 0x0FFF;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x2000, [&]() {	/* 2NNN | Calls subroutine at NNN */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x2000, [&]() {	/* 2NNN | Calls subroutine at NNN */
 		stack[sp] = pc;
 		++sp;
 		pc = opcode & 0x0FFF;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x3000, [&]() {	/* 3XNN | Skip the next instruction if Vx equals NN */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x3000, [&]() {	/* 3XNN | Skip the next instruction if Vx equals NN */
 		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) pc += 4;
 		else												pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x4000, [&]() {	/* 4XNN | Skips the next instruction if VX doesnt equal NN */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x4000, [&]() {	/* 4XNN | Skips the next instruction if VX doesnt equal NN */
 		if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) pc += 4;
 		else												pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x5000, [&]() {	/* 5XY0 | Skips the next instruction if VX equals VY. */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x5000, [&]() {	/* 5XY0 | Skips the next instruction if VX equals VY. */
 		if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4]) pc += 4;
 		else														pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x6000, [&]() {	/* 6XNN | Sets VX to NN */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x6000, [&]() {	/* 6XNN | Sets VX to NN */
 		V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x7000, [&]() {	/* 7XNN | Adds NN to VX (Carry flag is not changed) */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x7000, [&]() {	/* 7XNN | Adds NN to VX (Carry flag is not changed) */
 		V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x8000, [&]() {
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x8000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0000, [&]() {	/* 8xy0 | Sets Vx = Vy */
@@ -204,21 +196,21 @@ void Chip8::CreateInstructionTable()
 		subMask.at(opcode & 0x000F)();
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x9000, [&]() { /*9xy0 | Skip next instruction if Vx != Vy */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0x9000, [&]() { /*9xy0 | Skip next instruction if Vx != Vy */
 		if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]) pc += 4;
 		else														pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xA000, [&]() { /* Annn | Set I = nnn*/
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xA000, [&]() { /* Annn | Set I = nnn*/
 		i = opcode & 0x0FFF;
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xB000, [&]() {	/* Bnnn | Jump to location nnn + V0 */
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xB000, [&]() {	/* Bnnn | Jump to location nnn + V0 */
 		pc = (opcode & 0x0FFF) + V[0];
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xC000, [&]() {	/* Cxkk | Set Vx = random byte AND kk.*/
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xC000, [&]() {	/* Cxkk | Set Vx = random byte AND kk.*/
 		std::random_device rd;
 		std::mt19937 mt(rd());
 		std::uniform_real_distribution<> dist(0x00, 0xFF);
@@ -226,7 +218,7 @@ void Chip8::CreateInstructionTable()
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xD000, [&]() {	/* Dxyn | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xD000, [&]() {	/* Dxyn | Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision*/
 		unsigned short x = V[(opcode & 0x0F00) >> 8];
 		unsigned short y = V[(opcode & 0x00F0) >> 4];
 		unsigned short height = opcode & 0x000F;
@@ -251,7 +243,7 @@ void Chip8::CreateInstructionTable()
 		pc += 2;
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xE000, [&]() {
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xE000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x000E, [&]() {	/* Ex9E | Skip next instruction if key with the value of Vx is pressed */
@@ -267,7 +259,7 @@ void Chip8::CreateInstructionTable()
 		subMask.at(opcode & 0x000F)();
 	}));
 
-	m_instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xF000, [&]() {
+	instructionTable.insert(std::make_pair<uint16_t, std::function<void()>>(0xF000, [&]() {
 		std::map<uint16_t, std::function<void()>> subMask;
 
 		subMask.insert(std::make_pair<uint16_t, std::function<void()>>(0x0007, [&]() {	/* Fx07  | Set Vx = delay timer value */
@@ -336,7 +328,7 @@ void Chip8::CreateInstructionTable()
 	}));
 }
 
-int Chip8::IsKeyDown(const char& key)
+int Machine::Chip8::IsKeyDown(const char& key)
 {
 	return SDL_GetKeyboardState(NULL)[keys[key]];
 }
