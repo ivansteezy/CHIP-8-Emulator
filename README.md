@@ -1,5 +1,5 @@
 # CHIP-8 interpreter.
-An interpreter that helped me to enter the world of emulation (and to stay sane in quarantine), made in C ++ 17.
+An interpreter that helped me to enter the world of emulation, made in C ++ 17.
 
 ## Snapshots.
 | <img src="https://github.com/ivansteezy/Mi-emulador-de-CHIP-8/blob/master/Snapshots/IBM.png"  width=320> | <img src="https://github.com/ivansteezy/Mi-emulador-de-CHIP-8/blob/master/Snapshots/Pong.png"  width=320> | 
